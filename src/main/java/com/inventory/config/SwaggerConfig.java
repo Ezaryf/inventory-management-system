@@ -1,0 +1,43 @@
+package com.inventory.config;
+
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * OpenAPI (Swagger) configuration for API documentation.
+ */
+@Configuration
+public class SwaggerConfig {
+
+    @Bean
+    public OpenAPI inventoryOpenAPI() {
+        final String securitySchemeName = "basicAuth";
+
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Inventory Management System API")
+                        .description(
+                                "A comprehensive REST API for managing inventory, products, categories, and suppliers")
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("API Support")
+                                .email("support@inventory.com"))
+                        .license(new License()
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT")))
+                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName,
+                                new SecurityScheme()
+                                        .name(securitySchemeName)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("basic")));
+    }
+}
