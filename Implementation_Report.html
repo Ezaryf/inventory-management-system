@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Management System - Implementation Report</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+      }
+      h2 {
+        color: #2980b9;
+        margin-top: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+      }
+      h3 {
+        color: #16a085;
+        margin-top: 20px;
+      }
+      p {
+        margin-bottom: 15px;
+      }
+      code {
+        background-color: #f8f9fa;
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-family: Consolas, Monaco, "Andale Mono", monospace;
+        font-size: 0.9em;
+        color: #e83e8c;
+      }
+      pre {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #e9ecef;
+        overflow-x: auto;
+      }
+      pre code {
+        color: #24292e;
+        background-color: transparent;
+        padding: 0;
+      }
+      .requirement {
+        background-color: #e8f4fd;
+        padding: 10px 15px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 20px;
+      }
+      .footer {
+        margin-top: 50px;
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 0.8em;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+      }
+      @media print {
+        body {
+          font-size: 11pt;
+          padding: 0;
+        }
+        h2 {
+          page-break-before: always;
+          margin-top: 10px;
+        }
+        h2:first-of-type {
+          page-break-before: avoid;
+        }
+        pre {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          border: 1px solid #ccc;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Inventory Management System - Project Implementation Report</h1>
+
+    <p>
+      This document maps the implemented codebase to the requirements outlined
+      in the <strong>Inventory Management System Plan</strong>. Each section
+      corresponds to an exercise from the plan, demonstrating how the
+      requirements were met with code examples and explanations.
+    </p>
+
+    <!-- Exercise 1 -->
+    <h2>Exercise 1: Inventory Database & Spring Boot Setup</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> Create MySQL database
+      (<code>products</code>, <code>categories</code>, <code>suppliers</code>,
+      <code>transactions</code>) and setup Spring Boot with JPA/Lombok.
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <p>
+      Instead of writing raw SQL scripts, we utilized
+      <strong>JPA (Java Persistence API)</strong> to define our database schema
+      directly in Java. When the application starts, Hibernate automatically
+      translates these logical entities into MySQL tables.
+    </p>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong>1. Product Entity (<code>Product.java</code>)</strong><br /><em
+        >Maps to the <code>products</code> table.</em
+      >
+    </p>
+    <pre><code>@Entity
+@Table(name = "products")
+@Data // Lombok: Generates Getters, Setters, toString, etc.
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String sku;
+
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY) // Relationship to Category
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Column(nullable = false)
+    private Integer currentStock;
+    
+    // ... verification of cost, reorder level, etc.
+}</code></pre>
+
+    <p>
+      <strong>2. Maven Dependencies (<code>pom.xml</code>)</strong><br /><em
+        >Sets up Spring Boot, Database Driver, and Utilities.</em
+      >
+    </p>
+    <pre><code>&lt;dependencies&gt;
+    &lt;!-- Core Web Framework --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;!-- Database Access (JPA) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;!-- MySQL Driver --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;!-- Lombok (Boilerplate reduction) --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+
+    <!-- Exercise 2 -->
+    <h2>Exercise 2: Product & Category Management API</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> Implement CRUD (Create, Read, Update,
+      Delete) for Products and Categories with validation.
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <p>
+      We followed the standard
+      <strong>Controller-Service-Repository</strong> architecture.
+    </p>
+    <ol>
+      <li><strong>Repository</strong>: Handles raw database SQL.</li>
+      <li>
+        <strong>Service</strong>: Handles business logic (e.g., checking if SKU
+        exists).
+      </li>
+      <li><strong>Controller</strong>: Handles HTTP requests and responses.</li>
+    </ol>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong
+        >1. Product Controller (<code>ProductController.java</code>)</strong
+      ><br /><em>Exposes the endpoints.</em>
+    </p>
+    <pre><code>@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    // GET /api/products (Read all with pagination)
+    @GetMapping
+    public ResponseEntity&lt;PagedResponse&lt;ProductDTO&gt;&gt; getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(productService.findAll(PageRequest.of(page, size)));
+    }
+
+    // POST /api/products (Create new)
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // Security check
+    public ResponseEntity&lt;ProductDTO&gt; createProduct(@Valid @RequestBody ProductCreateDTO dto) {
+        return new ResponseEntity&lt;&gt;(productService.create(dto), HttpStatus.CREATED);
+    }
+    
+    // ... PUT and DELETE implementation
+}</code></pre>
+
+    <p>
+      <strong>2. Input Validation (<code>ProductCreateDTO.java</code>)</strong
+      ><br /><em>Ensures data quality before processing.</em>
+    </p>
+    <pre><code>public class ProductCreateDTO {
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @NotBlank(message = "SKU is required")
+    private String sku;
+
+    @Min(value = 0, message = "Price cannot be negative")
+    private BigDecimal unitPrice;
+}</code></pre>
+
+    <!-- Exercise 3 -->
+    <h2>Exercise 3: Complete Inventory Operations</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> Stock IN/OUT operations, Low stock
+      detection, Relationships.
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <p>
+      We created a dedicated <code>InventoryService</code> to handle stock
+      movements. This ensures that every time stock changes, a
+      <strong>Transaction Record</strong> is created automatically for audit
+      trails.
+    </p>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong
+        >1. Stock Movement Logic
+        (<code>InventoryServiceImpl.java</code>)</strong
+      >
+    </p>
+    <pre><code>@Override
+@Transactional
+public ProductDTO removeStock(StockAdjustmentDTO dto) {
+    Product product = productRepository.findById(dto.getProductId())
+            .orElseThrow(() -> new ResourceNotFoundException("Product", "id", dto.getProductId()));
+
+    // Logic: Validation
+    if (product.getCurrentStock() < dto.getQuantity()) {
+        throw new InsufficientStockException(dto.getProductId(), dto.getQuantity(), product.getCurrentStock());
+    }
+
+    // Logic: Update Stock
+    product.setCurrentStock(product.getCurrentStock() - dto.getQuantity());
+
+    // Logic: Create History Record
+    InventoryTransaction transaction = InventoryTransaction.builder()
+            .product(product)
+            .transactionType(TransactionType.STOCK_OUT) // Enum: STOCK_IN / STOCK_OUT
+            .quantity(dto.getQuantity())
+            .build();
+    
+    transactionRepository.save(transaction);
+    
+    return mapToProductDTO(productRepository.save(product));
+}</code></pre>
+
+    <!-- Exercise 4 -->
+    <h2>Exercise 4: Refactored Code with SOLID Principles</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> SRP (Single Responsibility), ISP (Interface
+      Segregation), DIP (Dependency Injection).
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <ul>
+      <li>
+        <strong>SRP</strong>: We split <code>ProductService</code> (CRUD) from
+        <code>InventoryService</code> (Stock Logic).
+      </li>
+      <li>
+        <strong>ISP</strong>: We defined
+        <code>InventoryOperations</code> interface to expose only necessary
+        methods.
+      </li>
+      <li>
+        <strong>DIP</strong>: Services depend on abstractions (Interfaces) and
+        are injected via Constructor.
+      </li>
+    </ul>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong
+        >1. Interface Segregation
+        (<code>InventoryOperations.java</code>)</strong
+      >
+    </p>
+    <pre><code>// Interface defines EXACTLY what operations are supported
+public interface InventoryOperations {
+    ProductDTO addStock(StockAdjustmentDTO dto);
+    ProductDTO removeStock(StockAdjustmentDTO dto);
+    List&lt;ProductDTO&gt; getLowStockProducts();
+}</code></pre>
+
+    <p>
+      <strong
+        >2. Dependency Injection
+        (<code>InventoryServiceImpl.java</code>)</strong
+      >
+    </p>
+    <pre><code>@Service
+public class InventoryServiceImpl implements InventoryService { // Implements Interface
+    
+    private final ProductRepository productRepository;
+    
+    // DEPENDENCY INJECTION (DIP):
+    // We ask Spring to provide the repository, we don't say "new ProductRepository()"
+    public InventoryServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+}</code></pre>
+
+    <!-- Exercise 5 -->
+    <h2>Exercise 5: Unit Testing with JUnit</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> Service Layer (Mockito) and Controller Layer
+      (MockMvc) testing.
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <p>
+      We verify that our code works in isolation (Unit Tests) and as a whole
+      (Integration Tests).
+    </p>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong>1. Service Test (<code>ProductServiceTest.java</code>)</strong
+      ><br /><em
+        >Mocks the database so we verify logic without needing MySQL.</em
+      >
+    </p>
+    <pre><code>@ExtendWith(MockitoExtension.class)
+class ProductServiceTest {
+    @Mock
+    private ProductRepository productRepository; // Fake Database
+
+    @InjectMocks
+    private ProductServiceImpl productService; // System Under Test
+
+    @Test
+    void create_ShouldReturnDto_WhenValid() {
+        // Arrange
+        when(productRepository.existsBySku(any())).thenReturn(false);
+        when(productRepository.save(any())).thenReturn(product);
+
+        // Act
+        ProductDTO result = productService.create(createDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("PROD-001", result.getSku());
+    }
+}</code></pre>
+
+    <p>
+      <strong
+        >2. Integration Test
+        (<code>InventoryIntegrationTest.java</code>)</strong
+      ><br /><em>Tests the real flow with a test database.</em>
+    </p>
+    <pre><code>@SpringBootTest
+@AutoConfigureMockMvc
+class InventoryIntegrationTest {
+    @Test
+    void shouldManageInventoryFlow() throws Exception {
+        // 1. Create Product
+        mockMvc.perform(post("/api/products")...)
+               .andExpect(status().isCreated());
+               
+        // 2. Add Stock
+        mockMvc.perform(post("/api/inventory/stock-in")...)
+               .andExpect(status().isOk());
+    }
+}</code></pre>
+
+    <!-- Exercise 6 -->
+    <h2>Exercise 6: Advanced Functionality</h2>
+    <div class="requirement">
+      <strong>Requirement:</strong> Security, Validation, Global Exception
+      Handler.
+    </div>
+
+    <h3>Implementation Logic</h3>
+    <ul>
+      <li>
+        <strong>Security</strong>: Used standard Spring Security Filter Chain
+        strictly requiring authentication.
+      </li>
+      <li>
+        <strong>Exception Handling</strong>: Centralized logic to catch errors
+        and return JSON instead of crashes.
+      </li>
+    </ul>
+
+    <h3>Code Evidence</h3>
+    <p>
+      <strong
+        >1. Security Configuration (<code>SecurityConfig.java</code>)</strong
+      >
+    </p>
+    <pre><code>@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/**").permitAll() // Public login
+            .requestMatchers("/api/admin/**").hasRole("ADMIN") // Admin only
+            .anyRequest().authenticated() // Everything else requires login
+        )
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+}</code></pre>
+
+    <p>
+      <strong
+        >2. Global Exception Handler
+        (<code>GlobalExceptionHandler.java</code>)</strong
+      >
+    </p>
+    <pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFound(ResourceNotFoundException ex) {
+        return ErrorResponse.builder()
+                .message(ex.getMessage())
+                .errorCode("NOT_FOUND")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+}</code></pre>
+
+    <div class="footer">
+      Generated for Inventory Management System Project - January 2026
+    </div>
+  </body>
+</html>
