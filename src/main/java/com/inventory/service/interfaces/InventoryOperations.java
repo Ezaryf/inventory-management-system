@@ -3,7 +3,6 @@ package com.inventory.service.interfaces;
 import com.inventory.dto.InventoryTransactionDTO;
 import com.inventory.dto.ProductDTO;
 import com.inventory.dto.StockAdjustmentDTO;
-import com.inventory.entity.Product;
 
 import java.util.List;
 

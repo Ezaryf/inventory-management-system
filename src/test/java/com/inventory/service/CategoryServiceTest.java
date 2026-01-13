@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for CategoryServiceImpl using Mockito.
  */
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class CategoryServiceTest {
 
     @Mock

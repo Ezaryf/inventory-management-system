@@ -5,9 +5,10 @@ import com.inventory.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final UserRepository userRepository;
@@ -52,26 +53,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .authorizeRequests()
-                // Public endpoints
-                .antMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                .antMatchers("/error").permitAll()
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        // Public endpoints
+                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**")
+                        .permitAll()
+                        .requestMatchers("/error").permitAll()
 
-                // Read operations - accessible to all authenticated users
-                .antMatchers(HttpMethod.GET, "/api/**").authenticated()
+                        // Read operations - accessible to all authenticated users
+                        .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
 
-                // Write operations - require USER or ADMIN role
-                .antMatchers(HttpMethod.POST, "/api/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("USER", "ADMIN")
+                        // Write operations - require USER or ADMIN role
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("USER", "ADMIN")
 
-                // Delete operations - require ADMIN role only
-                .antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                        // Delete operations - require ADMIN role only
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
 
-                // All other requests require authentication
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic();
+                        // All other requests require authentication
+                        .anyRequest().authenticated())
+                .httpBasic(httpBasic -> {
+                });
 
         return http.build();
     }

@@ -35,8 +35,10 @@ public class ProductCreateDTO {
     private BigDecimal unitPrice;
 
     @Min(value = 0, message = "Initial stock must be non-negative")
+    @Builder.Default
     private Integer initialStock = 0;
 
     @Min(value = 0, message = "Reorder level must be non-negative")
+    @Builder.Default
     private Integer reorderLevel = 10;
 }

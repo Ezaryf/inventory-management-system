@@ -28,6 +28,7 @@ import java.util.List;
  */
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class InventoryServiceImpl implements InventoryService {
 
     private final ProductRepository productRepository;

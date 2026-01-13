@@ -23,6 +23,7 @@ import java.util.List;
  */
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;

@@ -33,6 +33,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for ProductServiceImpl using Mockito.
  */
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 class ProductServiceTest {
 
     @Mock

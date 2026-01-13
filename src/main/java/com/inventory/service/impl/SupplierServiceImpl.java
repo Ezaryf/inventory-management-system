@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
