@@ -66,6 +66,6 @@ INSERT INTO inventory_transactions (product_id, transaction_type, quantity, refe
 
 -- Users (passwords are BCrypt encoded - 'password123' for all)
 INSERT INTO users (username, password, email, role, enabled) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin@inventory.com', 'ADMIN', TRUE),
-('user', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'user@inventory.com', 'USER', TRUE),
-('viewer', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'viewer@inventory.com', 'VIEWER', TRUE);
+('admin', 'password123', 'admin@inventory.com', 'ADMIN', TRUE),
+('user', 'password123', 'user@inventory.com', 'USER', TRUE),
+('viewer', 'password123', 'viewer@inventory.com', 'VIEWER', TRUE);
