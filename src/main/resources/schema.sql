@@ -1,40 +1,41 @@
 -- Inventory Management System Database Schema
--- Drop tables if they exist (in reverse order of dependencies)
-DROP TABLE IF EXISTS inventory_transactions;
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS categories;
-DROP TABLE IF EXISTS suppliers;
-DROP TABLE IF EXISTS users;
+-- Tables will be created only if they do not exist
 
 -- Categories Table
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- Note: Index creation might fail if it already exists in some MySQL versions with strictly distinct ADD INDEX syntax,
+    -- but usually inline index definition in CREATE TABLE is fine as it's part of the creation which is skipped if table exists.
+    -- However, for robustness in schema evolution, adding separate index checks might be needed later if we were altering tables.
+    -- For this context (initial creation), inline is sufficient.
+    CONSTRAINT uq_category_name UNIQUE (name),
     INDEX idx_category_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Suppliers Table
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     company_name VARCHAR(200) NOT NULL,
     contact_person VARCHAR(100),
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     address VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uq_supplier_email UNIQUE (email),
     INDEX idx_supplier_company (company_name),
     INDEX idx_supplier_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Products Table
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
-    sku VARCHAR(50) NOT NULL UNIQUE,
+    sku VARCHAR(50) NOT NULL,
     description VARCHAR(1000),
     category_id BIGINT,
     supplier_id BIGINT,
@@ -43,6 +44,7 @@ CREATE TABLE products (
     reorder_level INT NOT NULL DEFAULT 10,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uq_product_sku UNIQUE (sku),
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
     CONSTRAINT fk_product_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
     INDEX idx_product_name (name),
@@ -53,7 +55,7 @@ CREATE TABLE products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Inventory Transactions Table
-CREATE TABLE inventory_transactions (
+CREATE TABLE IF NOT EXISTS inventory_transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id BIGINT NOT NULL,
     transaction_type ENUM('STOCK_IN', 'STOCK_OUT', 'ADJUSTMENT') NOT NULL,
@@ -69,14 +71,16 @@ CREATE TABLE inventory_transactions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Users Table for Authentication
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
     role ENUM('ADMIN', 'USER', 'VIEWER') NOT NULL DEFAULT 'USER',
     enabled BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uq_user_username UNIQUE (username),
+    CONSTRAINT uq_user_email UNIQUE (email),
     INDEX idx_user_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

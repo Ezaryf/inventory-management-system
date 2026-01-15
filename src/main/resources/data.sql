@@ -1,7 +1,8 @@
 -- Sample Data for Inventory Management System
+-- Using INSERT IGNORE to prevent errors if data already exists
 
 -- Categories
-INSERT INTO categories (name, description) VALUES
+INSERT IGNORE INTO categories (name, description) VALUES
 ('Electronics', 'Electronic devices and accessories'),
 ('Clothing', 'Apparel and fashion items'),
 ('Food & Beverages', 'Consumable food and drink products'),
@@ -11,7 +12,7 @@ INSERT INTO categories (name, description) VALUES
 ('Health & Beauty', 'Health, wellness, and beauty products');
 
 -- Suppliers
-INSERT INTO suppliers (company_name, contact_person, email, phone, address) VALUES
+INSERT IGNORE INTO suppliers (company_name, contact_person, email, phone, address) VALUES
 ('Tech Solutions Inc.', 'John Smith', 'john.smith@techsolutions.com', '+1-555-0101', '123 Tech Park, Silicon Valley, CA 94000'),
 ('Fashion Forward Ltd.', 'Emily Johnson', 'emily@fashionforward.com', '+1-555-0102', '456 Fashion Ave, New York, NY 10001'),
 ('Fresh Foods Co.', 'Michael Brown', 'michael@freshfoods.com', '+1-555-0103', '789 Farm Road, Austin, TX 78701'),
@@ -20,7 +21,7 @@ INSERT INTO suppliers (company_name, contact_person, email, phone, address) VALU
 ('SportMax Global', 'Jessica Martinez', 'jessica@sportmax.com', '+1-555-0106', '987 Sports Center, Denver, CO 80201');
 
 -- Products
-INSERT INTO products (name, sku, description, category_id, supplier_id, unit_price, current_stock, reorder_level) VALUES
+INSERT IGNORE INTO products (name, sku, description, category_id, supplier_id, unit_price, current_stock, reorder_level) VALUES
 -- Electronics
 ('Wireless Bluetooth Headphones', 'ELEC-WBH-001', 'High-quality wireless Bluetooth headphones with noise cancellation', 1, 1, 79.99, 150, 25),
 ('USB-C Charging Cable 6ft', 'ELEC-UCC-002', 'Durable USB-C to USB-C fast charging cable', 1, 1, 14.99, 500, 100),
@@ -52,7 +53,7 @@ INSERT INTO products (name, sku, description, category_id, supplier_id, unit_pri
 ('Resistance Bands Set', 'SPRT-RBS-003', 'Set of 5 resistance bands with different strengths', 6, 6, 19.99, 140, 25);
 
 -- Sample Inventory Transactions
-INSERT INTO inventory_transactions (product_id, transaction_type, quantity, reference_number, notes, created_by) VALUES
+INSERT IGNORE INTO inventory_transactions (product_id, transaction_type, quantity, reference_number, notes, created_by) VALUES
 (1, 'STOCK_IN', 200, 'PO-2024-001', 'Initial stock from supplier', 'admin'),
 (1, 'STOCK_OUT', 50, 'SO-2024-001', 'Sold to customer', 'admin'),
 (2, 'STOCK_IN', 600, 'PO-2024-002', 'Bulk purchase', 'admin'),
@@ -65,7 +66,7 @@ INSERT INTO inventory_transactions (product_id, transaction_type, quantity, refe
 (10, 'STOCK_OUT', 22, 'SO-2024-005', 'Customer orders', 'admin');
 
 -- Users (passwords are BCrypt encoded - 'password123' for all)
-INSERT INTO users (username, password, email, role, enabled) VALUES
+INSERT IGNORE INTO users (username, password, email, role, enabled) VALUES
 ('admin', 'password123', 'admin@inventory.com', 'ADMIN', TRUE),
 ('user', 'password123', 'user@inventory.com', 'USER', TRUE),
 ('viewer', 'password123', 'viewer@inventory.com', 'VIEWER', TRUE);
