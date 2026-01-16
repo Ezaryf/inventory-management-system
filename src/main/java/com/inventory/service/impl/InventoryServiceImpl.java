@@ -1,5 +1,4 @@
-package com.inventory.service.impl;
-
+﻿package com.inventory.service.impl;
 import com.inventory.dto.*;
 import com.inventory.entity.InventoryTransaction;
 import com.inventory.entity.Product;
@@ -17,25 +16,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
-/**
- * Implementation of InventoryService.
- * Follows SRP - only handles inventory operations (stock movements).
- * Uses DIP - depends on InventoryNotificationService interface.
- */
 @Service
 @Transactional
 @SuppressWarnings("null")
 public class InventoryServiceImpl implements InventoryService {
-
     private final ProductRepository productRepository;
     private final InventoryTransactionRepository transactionRepository;
     private final InventoryNotificationService notificationService;
-
-    // Constructor injection (DIP)
     public InventoryServiceImpl(ProductRepository productRepository,
             InventoryTransactionRepository transactionRepository,
             InventoryNotificationService notificationService) {
@@ -43,16 +32,12 @@ public class InventoryServiceImpl implements InventoryService {
         this.transactionRepository = transactionRepository;
         this.notificationService = notificationService;
     }
-
     @Override
     public ProductDTO addStock(StockAdjustmentDTO dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", dto.getProductId()));
-
         int previousStock = product.getCurrentStock();
         product.setCurrentStock(previousStock + dto.getQuantity());
-
-        // Create transaction record
         InventoryTransaction transaction = InventoryTransaction.builder()
                 .product(product)
                 .transactionType(TransactionType.STOCK_IN)
@@ -61,36 +46,25 @@ public class InventoryServiceImpl implements InventoryService {
                 .notes(dto.getNotes())
                 .createdBy(getCurrentUsername())
                 .build();
-
         transactionRepository.save(transaction);
         Product saved = productRepository.save(product);
-
-        // Notify about stock update
         notificationService.notifyStockUpdate(
                 product.getId(),
                 product.getName(),
                 previousStock,
                 saved.getCurrentStock(),
                 "STOCK_IN");
-
         return mapToProductDTO(saved);
     }
-
     @Override
     public ProductDTO removeStock(StockAdjustmentDTO dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", dto.getProductId()));
-
         int previousStock = product.getCurrentStock();
-
-        // Check if sufficient stock is available
         if (previousStock < dto.getQuantity()) {
             throw new InsufficientStockException(dto.getProductId(), dto.getQuantity(), previousStock);
         }
-
         product.setCurrentStock(previousStock - dto.getQuantity());
-
-        // Create transaction record
         InventoryTransaction transaction = InventoryTransaction.builder()
                 .product(product)
                 .transactionType(TransactionType.STOCK_OUT)
@@ -99,19 +73,14 @@ public class InventoryServiceImpl implements InventoryService {
                 .notes(dto.getNotes())
                 .createdBy(getCurrentUsername())
                 .build();
-
         transactionRepository.save(transaction);
         Product saved = productRepository.save(product);
-
-        // Notify about stock update
         notificationService.notifyStockUpdate(
                 product.getId(),
                 product.getName(),
                 previousStock,
                 saved.getCurrentStock(),
                 "STOCK_OUT");
-
-        // Check for low stock and notify
         if (saved.isLowStock()) {
             notificationService.notifyLowStock(
                     saved.getId(),
@@ -119,10 +88,8 @@ public class InventoryServiceImpl implements InventoryService {
                     saved.getCurrentStock(),
                     saved.getReorderLevel());
         }
-
         return mapToProductDTO(saved);
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<ProductDTO> getLowStockProducts() {
@@ -130,20 +97,17 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(this::mapToProductDTO)
                 .toList();
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<InventoryTransactionDTO> getProductTransactions(Long productId) {
         if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("Product", "id", productId);
         }
-
         return transactionRepository.findRecentByProductId(productId, PageRequest.of(0, 100))
                 .stream()
                 .map(this::mapToTransactionDTO)
                 .toList();
     }
-
     @Override
     @Transactional(readOnly = true)
     public boolean isLowStock(Long productId) {
@@ -151,14 +115,12 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
         return product.isLowStock();
     }
-
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<InventoryTransactionDTO> findAllTransactions(Pageable pageable) {
         Page<InventoryTransaction> page = transactionRepository.findAll(pageable);
         return mapToPagedResponse(page);
     }
-
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<InventoryTransactionDTO> findTransactionsByProduct(Long productId, Pageable pageable) {
@@ -168,14 +130,12 @@ public class InventoryServiceImpl implements InventoryService {
         Page<InventoryTransaction> page = transactionRepository.findByProductId(productId, pageable);
         return mapToPagedResponse(page);
     }
-
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<InventoryTransactionDTO> findTransactionsByType(TransactionType type, Pageable pageable) {
         Page<InventoryTransaction> page = transactionRepository.findByTransactionType(type, pageable);
         return mapToPagedResponse(page);
     }
-
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<InventoryTransactionDTO> findTransactionsByDateRange(
@@ -183,13 +143,10 @@ public class InventoryServiceImpl implements InventoryService {
         Page<InventoryTransaction> page = transactionRepository.findByDateRange(start, end, pageable);
         return mapToPagedResponse(page);
     }
-
-    // Helper methods
     private String getCurrentUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth != null ? auth.getName() : "system";
     }
-
     private ProductDTO mapToProductDTO(Product product) {
         return ProductDTO.builder()
                 .id(product.getId())
@@ -208,7 +165,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .updatedAt(product.getUpdatedAt())
                 .build();
     }
-
     private InventoryTransactionDTO mapToTransactionDTO(InventoryTransaction transaction) {
         return InventoryTransactionDTO.builder()
                 .id(transaction.getId())
@@ -223,7 +179,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .createdBy(transaction.getCreatedBy())
                 .build();
     }
-
     private PagedResponse<InventoryTransactionDTO> mapToPagedResponse(Page<InventoryTransaction> page) {
         return PagedResponse.<InventoryTransactionDTO>builder()
                 .content(page.getContent().stream().map(this::mapToTransactionDTO).toList())

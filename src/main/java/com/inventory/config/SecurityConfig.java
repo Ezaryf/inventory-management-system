@@ -1,5 +1,4 @@
-package com.inventory.config;
-
+﻿package com.inventory.config;
 import com.inventory.entity.User;
 import com.inventory.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -14,34 +13,24 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-/**
- * Security configuration for the application.
- * Implements role-based access control.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-
     private final UserRepository userRepository;
-
     public SecurityConfig(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
     @Bean
     @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
         return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
     }
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getUsername())
                     .password(user.getPassword())
@@ -50,32 +39,21 @@ public class SecurityConfig {
                     .build();
         };
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers("/error").permitAll()
-
-                        // Read operations - accessible to all authenticated users
                         .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
-
-                        // Write operations - require USER or ADMIN role
                         .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("USER", "ADMIN")
-
-                        // Delete operations - require ADMIN role only
                         .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-
-                        // All other requests require authentication
                         .anyRequest().authenticated())
                 .httpBasic(httpBasic -> {
                 });
-
         return http.build();
     }
 }

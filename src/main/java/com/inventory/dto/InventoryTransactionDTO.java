@@ -1,13 +1,7 @@
-package com.inventory.dto;
-
+﻿package com.inventory.dto;
 import com.inventory.entity.TransactionType;
 import lombok.*;
-
 import java.time.LocalDateTime;
-
-/**
- * DTO for inventory transaction response.
- */
 @Getter
 @Setter
 @NoArgsConstructor

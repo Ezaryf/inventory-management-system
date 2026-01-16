@@ -1,5 +1,4 @@
-package com.inventory.service.impl;
-
+﻿package com.inventory.service.impl;
 import com.inventory.dto.*;
 import com.inventory.entity.Category;
 import com.inventory.exception.DuplicateResourceException;
@@ -11,25 +10,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-/**
- * Implementation of CategoryService.
- * Follows SRP - only handles category-related operations.
- */
 @Service
 @Transactional
 @SuppressWarnings("null")
 public class CategoryServiceImpl implements CategoryService {
-
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-
-    // Constructor injection (DIP)
     public CategoryServiceImpl(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
     }
-
     @Override
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
@@ -37,48 +27,37 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
         return mapToDTO(category);
     }
-
     @Override
     @Transactional(readOnly = true)
     public PagedResponse<CategoryDTO> findAll(Pageable pageable) {
         Page<Category> page = categoryRepository.findAll(pageable);
         return mapToPagedResponse(page);
     }
-
     @Override
     public CategoryDTO create(CategoryCreateDTO dto) {
-        // Check for duplicate name
         if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new DuplicateResourceException("Category", "name", dto.getName());
         }
-
         Category category = Category.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .build();
-
         Category saved = categoryRepository.save(category);
         return mapToDTO(saved);
     }
-
     @Override
     public CategoryDTO update(Long id, CategoryUpdateDTO dto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
-
-        // Check for duplicate name (excluding current category)
         categoryRepository.findByNameIgnoreCaseAndIdNot(dto.getName(), id)
                 .ifPresent(c -> {
                     throw new DuplicateResourceException("Category", "name", dto.getName());
                 });
-
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
-
         Category saved = categoryRepository.save(category);
         return mapToDTO(saved);
     }
-
     @Override
     public void delete(Long id) {
         if (!categoryRepository.existsById(id)) {
@@ -86,17 +65,13 @@ public class CategoryServiceImpl implements CategoryService {
         }
         categoryRepository.deleteById(id);
     }
-
     @Override
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
         return categoryRepository.existsByNameIgnoreCase(name);
     }
-
-    // Helper methods for mapping
     private CategoryDTO mapToDTO(Category category) {
         int productCount = (int) productRepository.countByCategoryId(category.getId());
-
         return CategoryDTO.builder()
                 .id(category.getId())
                 .name(category.getName())
@@ -106,7 +81,6 @@ public class CategoryServiceImpl implements CategoryService {
                 .updatedAt(category.getUpdatedAt())
                 .build();
     }
-
     private PagedResponse<CategoryDTO> mapToPagedResponse(Page<Category> page) {
         return PagedResponse.<CategoryDTO>builder()
                 .content(page.getContent().stream().map(this::mapToDTO).toList())

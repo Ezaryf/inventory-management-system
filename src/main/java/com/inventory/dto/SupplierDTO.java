@@ -1,12 +1,6 @@
-package com.inventory.dto;
-
+﻿package com.inventory.dto;
 import lombok.*;
-
 import java.time.LocalDateTime;
-
-/**
- * DTO for supplier response.
- */
 @Getter
 @Setter
 @NoArgsConstructor

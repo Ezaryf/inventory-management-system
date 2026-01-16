@@ -1,8 +1,4 @@
-package com.inventory.entity;
-
-/**
- * Enum representing the type of inventory transaction.
- */
+﻿package com.inventory.entity;
 public enum TransactionType {
     STOCK_IN,
     STOCK_OUT,
