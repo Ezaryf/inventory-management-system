@@ -1,5 +1,4 @@
-package com.inventory.controller;
-
+﻿package com.inventory.controller;
 import com.inventory.dto.*;
 import com.inventory.service.interfaces.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,21 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-/**
- * REST controller for Category operations.
- */
 @RestController
 @RequestMapping("/api/categories")
 @Tag(name = "Categories", description = "Category management APIs")
 public class CategoryController {
-
     private final CategoryService categoryService;
-
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
-
     @GetMapping
     @Operation(summary = "Get all categories", description = "Returns paginated list of categories")
     public ResponseEntity<PagedResponse<CategoryDTO>> getAllCategories(
@@ -35,15 +27,12 @@ public class CategoryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
-
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-
         return ResponseEntity.ok(categoryService.findAll(pageable));
     }
-
     @GetMapping("/{id}")
     @Operation(summary = "Get category by ID", description = "Returns a single category")
     @ApiResponse(responseCode = "200", description = "Category found")
@@ -51,7 +40,6 @@ public class CategoryController {
     public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.findById(id));
     }
-
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Create a new category", description = "Creates a new category")
@@ -62,7 +50,6 @@ public class CategoryController {
         CategoryDTO created = categoryService.create(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Update a category", description = "Updates an existing category")
@@ -74,7 +61,6 @@ public class CategoryController {
             @Valid @RequestBody CategoryUpdateDTO dto) {
         return ResponseEntity.ok(categoryService.update(id, dto));
     }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a category", description = "Deletes a category")

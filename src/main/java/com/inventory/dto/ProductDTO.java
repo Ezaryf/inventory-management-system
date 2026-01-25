@@ -1,13 +1,7 @@
-package com.inventory.dto;
-
+﻿package com.inventory.dto;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-/**
- * DTO for product response.
- */
 @Getter
 @Setter
 @NoArgsConstructor

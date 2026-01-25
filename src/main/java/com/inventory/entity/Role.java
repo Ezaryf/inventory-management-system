@@ -1,8 +1,4 @@
-package com.inventory.entity;
-
-/**
- * Enum representing user roles for authorization.
- */
+﻿package com.inventory.entity;
 public enum Role {
     ADMIN,
     USER,

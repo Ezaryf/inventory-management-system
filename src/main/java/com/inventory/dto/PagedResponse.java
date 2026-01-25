@@ -1,12 +1,6 @@
-package com.inventory.dto;
-
+﻿package com.inventory.dto;
 import lombok.*;
-
 import java.util.List;
-
-/**
- * Generic paged response DTO for pagination.
- */
 @Getter
 @Setter
 @NoArgsConstructor

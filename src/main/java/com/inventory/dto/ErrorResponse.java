@@ -1,13 +1,7 @@
-package com.inventory.dto;
-
+﻿package com.inventory.dto;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.Map;
-
-/**
- * Standard error response DTO.
- */
 @Getter
 @Setter
 @NoArgsConstructor

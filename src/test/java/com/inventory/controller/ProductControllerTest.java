@@ -1,5 +1,4 @@
-package com.inventory.controller;
-
+﻿package com.inventory.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inventory.dto.*;
 import com.inventory.exception.ResourceNotFoundException;
@@ -16,40 +15,28 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-/**
- * Controller tests for ProductController using MockMvc.
- */
 @WebMvcTest(ProductController.class)
 @Import(ProductControllerTest.TestSecurityConfig.class)
 @SuppressWarnings("null")
 class ProductControllerTest {
-
         @EnableMethodSecurity
         static class TestSecurityConfig {
-                // Empty config class to enable method security for tests
         }
-
         @Autowired
         private MockMvc mockMvc;
-
         @Autowired
         private ObjectMapper objectMapper;
-
         @MockBean
         private ProductService productService;
-
         private ProductDTO createTestProductDTO() {
                 return ProductDTO.builder()
                                 .id(1L)
@@ -68,11 +55,9 @@ class ProductControllerTest {
                                 .updatedAt(LocalDateTime.now())
                                 .build();
         }
-
         @Nested
         @DisplayName("GET /api/products tests")
         class GetProductsTests {
-
                 @Test
                 @WithMockUser
                 @DisplayName("Should return paginated products")
@@ -87,9 +72,7 @@ class ProductControllerTest {
                                         .first(true)
                                         .last(true)
                                         .build();
-
                         when(productService.findAll(any(Pageable.class))).thenReturn(response);
-
                         mockMvc.perform(get("/api/products")
                                         .contentType(MediaType.APPLICATION_JSON))
                                         .andExpect(status().isOk())
@@ -98,7 +81,6 @@ class ProductControllerTest {
                                         .andExpect(jsonPath("$.content[0].sku").value("TEST-001"))
                                         .andExpect(jsonPath("$.totalElements").value(1));
                 }
-
                 @Test
                 @DisplayName("Should require authentication")
                 void shouldRequireAuthentication() throws Exception {
@@ -106,42 +88,35 @@ class ProductControllerTest {
                                         .andExpect(status().isUnauthorized());
                 }
         }
-
         @Nested
         @DisplayName("GET /api/products/{id} tests")
         class GetProductByIdTests {
-
                 @Test
                 @WithMockUser
                 @DisplayName("Should return product when found")
                 void shouldReturnProductWhenFound() throws Exception {
                         ProductDTO product = createTestProductDTO();
                         when(productService.findById(1L)).thenReturn(product);
-
                         mockMvc.perform(get("/api/products/1")
                                         .contentType(MediaType.APPLICATION_JSON))
                                         .andExpect(status().isOk())
                                         .andExpect(jsonPath("$.id").value(1))
                                         .andExpect(jsonPath("$.name").value("Test Product"));
                 }
-
                 @Test
                 @WithMockUser
                 @DisplayName("Should return 404 when product not found")
                 void shouldReturn404WhenNotFound() throws Exception {
                         when(productService.findById(999L))
                                         .thenThrow(new ResourceNotFoundException("Product", "id", 999L));
-
                         mockMvc.perform(get("/api/products/999")
                                         .contentType(MediaType.APPLICATION_JSON))
                                         .andExpect(status().isNotFound());
                 }
         }
-
         @Nested
         @DisplayName("POST /api/products tests")
         class CreateProductTests {
-
                 @Test
                 @WithMockUser(roles = "USER")
                 @DisplayName("Should create product successfully")
@@ -152,7 +127,6 @@ class ProductControllerTest {
                                         .unitPrice(new BigDecimal("49.99"))
                                         .initialStock(50)
                                         .build();
-
                         ProductDTO responseDTO = ProductDTO.builder()
                                         .id(2L)
                                         .name("New Product")
@@ -160,9 +134,7 @@ class ProductControllerTest {
                                         .unitPrice(new BigDecimal("49.99"))
                                         .currentStock(50)
                                         .build();
-
                         when(productService.create(any(ProductCreateDTO.class))).thenReturn(responseDTO);
-
                         mockMvc.perform(post("/api/products")
                                         .with(csrf())
                                         .contentType(MediaType.APPLICATION_JSON)
@@ -171,23 +143,20 @@ class ProductControllerTest {
                                         .andExpect(jsonPath("$.id").value(2))
                                         .andExpect(jsonPath("$.name").value("New Product"));
                 }
-
                 @Test
                 @WithMockUser(roles = "USER")
                 @DisplayName("Should return 400 for invalid input")
                 void shouldReturn400ForInvalidInput() throws Exception {
                         ProductCreateDTO invalidDTO = ProductCreateDTO.builder()
-                                        .name("") // Invalid - blank name
-                                        .sku("") // Invalid - blank SKU
+                                        .name("") 
+                                        .sku("") 
                                         .build();
-
                         mockMvc.perform(post("/api/products")
                                         .with(csrf())
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(invalidDTO)))
                                         .andExpect(status().isBadRequest());
                 }
-
                 @Test
                 @WithMockUser(roles = "VIEWER")
                 @DisplayName("Should deny access for VIEWER role")
@@ -197,7 +166,6 @@ class ProductControllerTest {
                                         .sku("NEW-001")
                                         .unitPrice(new BigDecimal("49.99"))
                                         .build();
-
                         mockMvc.perform(post("/api/products")
                                         .with(csrf())
                                         .contentType(MediaType.APPLICATION_JSON)
@@ -205,24 +173,19 @@ class ProductControllerTest {
                                         .andExpect(status().isForbidden());
                 }
         }
-
         @Nested
         @DisplayName("DELETE /api/products/{id} tests")
         class DeleteProductTests {
-
                 @Test
                 @WithMockUser(roles = "ADMIN")
                 @DisplayName("Should delete product with ADMIN role")
                 void shouldDeleteProductWithAdminRole() throws Exception {
                         doNothing().when(productService).delete(1L);
-
                         mockMvc.perform(delete("/api/products/1")
                                         .with(csrf()))
                                         .andExpect(status().isNoContent());
-
                         verify(productService).delete(1L);
                 }
-
                 @Test
                 @WithMockUser(roles = "USER")
                 @DisplayName("Should deny delete for USER role")
@@ -232,11 +195,9 @@ class ProductControllerTest {
                                         .andExpect(status().isForbidden());
                 }
         }
-
         @Nested
         @DisplayName("GET /api/products/search tests")
         class SearchProductsTests {
-
                 @Test
                 @WithMockUser
                 @DisplayName("Should search products by name")
@@ -251,9 +212,7 @@ class ProductControllerTest {
                                         .first(true)
                                         .last(true)
                                         .build();
-
                         when(productService.searchByName(eq("Test"), any(Pageable.class))).thenReturn(response);
-
                         mockMvc.perform(get("/api/products/search")
                                         .param("name", "Test")
                                         .contentType(MediaType.APPLICATION_JSON))
@@ -261,11 +220,9 @@ class ProductControllerTest {
                                         .andExpect(jsonPath("$.content[0].name").value("Test Product"));
                 }
         }
-
         @Nested
         @DisplayName("GET /api/products/low-stock tests")
         class LowStockProductsTests {
-
                 @Test
                 @WithMockUser
                 @DisplayName("Should return low stock products")
@@ -277,9 +234,7 @@ class ProductControllerTest {
                                         .reorderLevel(10)
                                         .lowStock(true)
                                         .build();
-
                         when(productService.findLowStock()).thenReturn(List.of(lowStockProduct));
-
                         mockMvc.perform(get("/api/products/low-stock")
                                         .contentType(MediaType.APPLICATION_JSON))
                                         .andExpect(status().isOk())

@@ -1,22 +1,12 @@
--- Inventory Management System Database Schema
--- Tables will be created only if they do not exist
-
--- Categories Table
-CREATE TABLE IF NOT EXISTS categories (
+﻿CREATE TABLE IF NOT EXISTS categories (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    -- Note: Index creation might fail if it already exists in some MySQL versions with strictly distinct ADD INDEX syntax,
-    -- but usually inline index definition in CREATE TABLE is fine as it's part of the creation which is skipped if table exists.
-    -- However, for robustness in schema evolution, adding separate index checks might be needed later if we were altering tables.
-    -- For this context (initial creation), inline is sufficient.
     CONSTRAINT uq_category_name UNIQUE (name),
     INDEX idx_category_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Suppliers Table
 CREATE TABLE IF NOT EXISTS suppliers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     company_name VARCHAR(200) NOT NULL,
@@ -30,8 +20,6 @@ CREATE TABLE IF NOT EXISTS suppliers (
     INDEX idx_supplier_company (company_name),
     INDEX idx_supplier_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Products Table
 CREATE TABLE IF NOT EXISTS products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
@@ -53,8 +41,6 @@ CREATE TABLE IF NOT EXISTS products (
     INDEX idx_product_supplier (supplier_id),
     INDEX idx_product_stock (current_stock, reorder_level)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Inventory Transactions Table
 CREATE TABLE IF NOT EXISTS inventory_transactions (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id BIGINT NOT NULL,
@@ -69,8 +55,6 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
     INDEX idx_transaction_type (transaction_type),
     INDEX idx_transaction_date (transaction_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Users Table for Authentication
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
